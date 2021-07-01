@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'json'
 require 'open-uri'
 
@@ -8,19 +10,22 @@ class GamesController < ApplicationController
   end
 
   def score
-    word_arr = params[:word].split(//)
+    word_arr = params[:word].chars
     grid_arr = params[:letters].chars
-    if overflow?(word_arr, grid_arr)
-      @result = "Sorry but #{word_arr.join.upcase} can't built out of #{grid_arr.join(', ')}"
-    elsif !valid_word?(word_arr.join)
-      @result = "Sorry but #{word_arr.join.upcase} does not seem to be a valid English word"
-    else
-      @result = "Congratulations! #{word_arr.join.upcase} is a valid English word!"
-    end
+    word = params[:word]
+    @result = if in_grid?(word_arr, grid_arr)
+                if valid_word?(word)
+                  "Congratulations! #{word.upcase} is a valid English word!"
+                else
+                  "Sorry but #{word.upcase} does not seem to be a valid English word"
+                end
+              else
+                "Sorry but #{word.upcase} can't built out of #{grid_arr.join(', ')}"
+              end
   end
 
-  def overflow?(guess, grid)
-    guess.all? { |letter| guess.count(letter) > grid.count(letter) }
+  def in_grid?(guess, grid)
+    guess.all? { |letter| guess.count(letter) <= grid.count(letter) }
   end
 
   def valid_word?(word)
